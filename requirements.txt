@@ -12,7 +12,7 @@ mlxtend
 #from sklearn.neighbors import KNeighborsClassifier
 #from sklearn.naive_bayes import GaussianNB 
 #from sklearn.ensemble import RandomForestClassifier
-from.classifier import StackingClassifier
+#from.classifier import StackingClassifier
 #import numpy as np
 #from xgboost.sklearn import  XGBClassifier
 #from lightgbm.sklearn import  LGBMClassifier
