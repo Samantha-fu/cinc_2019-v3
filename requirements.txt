@@ -1,6 +1,20 @@
-pandas==0.23.4
-numpy==1.15.4
-SciPy==0.19.1
+pandas
+numpy
+SciPy
 joblib
-scikit-learn==0.20.2
-lightgbm==2.2.2
+scikit-learn
+lightgbm
+xgboost
+mlxtend
+#
+#from sklearn import model_selection
+#from sklearn.linear_model import LogisticRegression
+#from sklearn.neighbors import KNeighborsClassifier
+#from sklearn.naive_bayes import GaussianNB 
+#from sklearn.ensemble import RandomForestClassifier
+from.classifier import StackingClassifier
+#import numpy as np
+#from xgboost.sklearn import  XGBClassifier
+#from lightgbm.sklearn import  LGBMClassifier
+#from sklearn.ensemble import GradientBoostingClassifier
+
