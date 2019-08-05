@@ -2,7 +2,7 @@ pandas
 numpy
 SciPy
 joblib
-scikit-learn
+scikit-learn==0.20.2
 lightgbm
 xgboost
 mlxtend==0.15.0.0
