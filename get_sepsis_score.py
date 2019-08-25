@@ -12,6 +12,20 @@ from xgboost.sklearn import  XGBClassifier
 from lightgbm.sklearn import  LGBMClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.externals import joblib
+
+from keras.models import Sequential
+from keras.layers import Dense,Masking
+from keras.layers import LSTM
+from keras.models import load_model
+import h5py
+from sklearn.preprocessing import StandardScaler
+
+#构建网络层
+
+#model =Sequential()
+#model.add(Masking(mask_value=0,input_shape=(6,15)))
+#model.add(LSTM(128, input_shape=(6, 15)))
+#model.add(Dense(1,activation='sigmoid'))
 AB_features_mean_dict={'AST': 265.7649374462886,
  'Age': 61.99081631939693,
  'Alkalinephos': 103.30392278793136,
@@ -48,7 +62,14 @@ AB_features_mean_dict={'AST': 265.7649374462886,
  'TroponinI': 8.754286518446602,
  'WBC': 11.328748275605989,
  'pH': 7.376091731188639}
-all_columns=['HR', 'O2Sat', 'Temp', 'SBP', 'MAP', 'DBP', 'Resp', 'EtCO2', 'BaseExcess', 'HCO3', 'FiO2', 'pH', 'PaCO2', 'SaO2', 'AST', 'BUN', 'Alkalinephos', 'Calcium', 'Chloride', 'Creatinine', 'Bilirubin_direct', 'Glucose', 'Lactate', 'Magnesium', 'Phosphate', 'Potassium', 'Bilirubin_total', 'TroponinI', 'Hct', 'Hgb', 'PTT', 'WBC', 'Fibrinogen', 'Platelets', 'Age', 'Gender', 'Unit1', 'Unit2', 'HospAdmTime', 'ICULOS']
+all_columns=['HR', 'O2Sat', 'Temp', 'SBP', 'MAP', 'DBP', 'Resp', 'EtCO2', 'BaseExcess', 
+             'HCO3', 'FiO2', 'pH', 'PaCO2', 'SaO2', 'AST', 'BUN', 'Alkalinephos', 
+             'Calcium', 'Chloride', 'Creatinine', 'Bilirubin_direct', 'Glucose',
+             'Lactate', 'Magnesium', 'Phosphate', 'Potassium', 'Bilirubin_total',
+             'TroponinI', 'Hct', 'Hgb', 'PTT', 'WBC', 'Fibrinogen', 'Platelets', 
+             'Age', 'Gender', 'Unit1', 'Unit2', 'HospAdmTime', 'ICULOS']
+standard_lizer=joblib.load("./A_std_norm.m")
+#min_max_lizer=joblib.load("./A_min_max_norm.m")
 def fill_null_with_mean(data):
     df=pd.DataFrame(data,columns= all_columns)
     feature_name=[i for i in all_columns if i in ['HR', 'Temp', 'SBP', 'MAP', 'DBP', 'Resp',
@@ -58,35 +79,33 @@ def fill_null_with_mean(data):
         if col=="SepsisLabel":
             continue
         else:
-            if not any(df[col]):#if all null fill mean
+            if not any(df[col]):#if all null fill mean 
                 df[col]=df[col].fillna(AB_features_mean_dict[col],inplace=True)
             else: 
                 df[col].fillna(method="pad",inplace=True)#padding with before data
             #print(df.isnull())
-                df[col].fillna(AB_features_mean_dict[col],inplace=True) # fill mean data
-    return np.array(df[feature_name][0:])
-  
-def get_sepsis_score(current_data,model):#current
+                df[col].fillna(AB_features_mean_dict[col],inplace=True)
+    return standard_lizer.transform(np.array(df[feature_name][0:])) #返回的是一个数组
+
+def get_sepsis_score(current_data,model):
+    seq_length=6 
     data=fill_null_with_mean(current_data)
-    print("start predict the {}th hour of data".format(data.shape[0]))
-    new_array=np.zeros((1,(data.shape[1])*2))
-    array_data=np.array(data) 
-    if data.shape[0]==1:
-        new_array[0,0:data.shape[1]]= array_data[0].reshape(1,-1)
-        new_array[0,data.shape[1]:data.shape[1]*2]=0
-       # new_array[0,data.shape[1]*2:] = list(array_data[0])*3
-        add_data=np.array(new_array[0]).reshape(1,-1)
-    else:
-        trend_data=(np.diff(array_data.T))[:,-1].reshape(1,-1)   
-        add_data=np.concatenate((array_data[-1].reshape(1,-1),trend_data),axis=1)
-    #print("add_data.shape:",add_data.shape)
-    if add_data.shape[1]==30:
-        score =model.predict_proba(add_data)[:,1]
-        label = score > 0.25
-        return score,label
-    else:
-        print("the shape is not match 30 ,check")
-        return None
+    len_columns =data.shape[1] #15列
+    end=data.shape[0]
+    start =  end - seq_length if end - seq_length >= 0 else 0  
+    features_temp = np.zeros((seq_length,len_columns))    
+    features = data[start:end]
+    index = seq_length - features.shape[0]    
+    features_temp[index:] = features
+    score =model.predict(features_temp.reshape(1,seq_length,data.shape[1]))
+    label = score > 0.3
+    return score,label
+ 
 def load_sepsis_model():
-    model =joblib.load("./stacking_model.m")
-    return model
+   # model =Sequential()
+    #model.add(Masking(mask_value=0,input_shape=(6,15)))
+   # model.add(LSTM(128, input_shape=(6, 15)))
+   # model.add(Dense(1,activation='sigmoid'))
+   # model.load_weights('/home/fms/cinc_data/LSTM_model_weight.h5')
+    model=load_model("./LSTM_model.h5")
+    return model 
