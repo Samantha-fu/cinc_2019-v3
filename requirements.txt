@@ -1,6 +1,7 @@
 pandas
 numpy
 SciPy
+h5py
 joblib
 scikit-learn==0.20.2
 lightgbm
