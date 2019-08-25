@@ -1,4 +1,5 @@
-FROM python:3.6
+#FROM python:3.6
+FROM datmo/keras-tensorflow:gpu-py35
 
 ## The MAINTAINER instruction sets the Author field of the generated images
 MAINTAINER fms@sample.com
@@ -20,3 +21,4 @@ WORKDIR /physionet2019
 
 ## Do not edit if you have a requirements.txt
 RUN pip install -r requirements.txt
+
