@@ -79,8 +79,8 @@ def fill_null_with_mean(data):
         if col=="SepsisLabel":
             continue
         else:
-            if not any(df[col]):#if all null fill mean 
-                df[col]=df[col].fillna(AB_features_mean_dict[col],inplace=True)
+            if df[col].isnull().all():#if all null fill mean 
+                df[col]=df[col].fillna(AB_features_mean_dict[col])
             else: 
                 df[col].fillna(method="pad",inplace=True)#padding with before data
             #print(df.isnull())
@@ -98,7 +98,7 @@ def get_sepsis_score(current_data,model):
     index = seq_length - features.shape[0]    
     features_temp[index:] = features
     score =model.predict(features_temp.reshape(1,seq_length,data.shape[1]))
-    label = score > 0.3
+    label = score > 0.40
     return score,label
  
 def load_sepsis_model():
